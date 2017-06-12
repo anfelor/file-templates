@@ -1,0 +1,25 @@
+name:                templates
+version:             0.1.0.0
+synopsis:
+description:
+homepage:            https://github.com/anfelor/templates#readme
+author:              Anton Felix Lorenzen
+maintainer:          anfelor@posteo.de
+copyright:           BSD3
+category:            Web
+
+dependencies:       base >= 4.7 && < 5
+                  , foundation
+                  , directory
+                  , attoparsec
+                  , filepath
+                  , bytestring
+                  , unordered-containers
+                  , transformers
+default-extensions: NoImplicitPrelude
+                  , OverloadedStrings
+
+executables:
+  new:
+    source-dirs:      src
+    main:             Main.hs
