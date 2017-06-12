@@ -6,7 +6,7 @@ $ tree ~/.templates/
 /home/me/.templates/
 └── post
     ├── author
-    │   ├── eaiu.md
+    │   ├── file.md
     │   └── ??name2?.md
     ├── ?env?LANGUAGE?.md
     └── ??name?.md
@@ -23,7 +23,7 @@ Please give a value for 'name2': World
 $ tree
 .
 ├── author
-│   ├── eaiu.md
+│   ├── file.md
 │   └── World.md
 ├── en_US.md
 └── Hello.md
