@@ -10,11 +10,13 @@ import Data.HashMap.Strict (HashMap)
 import Data.Traversable
 import qualified Data.Attoparsec.ByteString as Attoparsec
 import qualified Data.ByteString
+import qualified Data.ByteString.Char8
 import qualified Data.Char
 import qualified Data.HashMap.Strict as HashMap
 import qualified Data.List
 import qualified GHC.Base
 import qualified System.Environment
+import qualified System.Exit
 import System.Directory
 import System.FilePath
 
@@ -116,19 +118,63 @@ instance Exception TemplateExceptions where
   displayException (CouldntFindEnvVar var) =
     "Couldn't find the environment variable '" <> bsToChars var <> "'."
 
+
+-- | Print the first argument and then the second,
+-- and wait for 'j' or 'n' (spaces get trimmed, case-insensitive).
+-- When the user enters something else, print the second argument
+-- and wait for another input and so forth.
+-- > askUser "This is bad." "Continue? [j/N]"
+askUser :: ByteString -> ByteString -> IO Bool
+askUser msg repeat = do
+  Data.ByteString.Char8.putStrLn msg
+  go
+  where
+    go = do
+      Data.ByteString.Char8.putStr repeat
+      r <- Data.ByteString.Char8.getLine
+      let trimmed = fst $ Data.ByteString.Char8.spanEnd Data.Char.isSpace
+                        $ Data.ByteString.Char8.dropWhile Data.Char.isSpace r
+      let lower = Data.ByteString.Char8.map Data.Char.toLower trimmed
+      case lower of
+        "j" -> pure True
+        "n" -> pure False
+        _ -> go
+
+
 main :: IO ()
 main = do
   [name] <- getArgs
   templateDir <- (</> toList name) <$> getAppUserDataDirectory "templates"
   templateFiles <- allFiles templateDir
-  (destFiles, asked) <- runStateT (mapM (convert <=< parse . charsToBs) templateFiles) HashMap.empty
-  flip evalStateT asked $ forM_ (Data.List.zip (fmap (templateDir </>) templateFiles) destFiles) $ \(tf, df) -> do
-    bs <- lift $ Data.ByteString.readFile tf
-    cs <- parse bs
-    completed <- convert cs
-    lift $ createDirectoryIfMissing True (dropFileName $ bsToChars df)
-    lift $ Data.ByteString.writeFile (bsToChars df) completed
+
+  -- Parse the filenames and resolve the variables in them.
+  (destFiles, asked) <- runStateT
+    (mapM (convert <=< parse . charsToBs) templateFiles)
+    HashMap.empty
+
+  -- Check whether some files are already present.
+  existingFiles <- filterM (doesFileExist . bsToChars) destFiles
+  when (not $ null existingFiles) $ do
+    overwrite <- askUser
+      ("The following files already exist:\n"
+      <> Data.ByteString.Char8.unlines (fmap ("  "<>) existingFiles)
+      ) "Overwrite? [j/N]"
+    when (not overwrite) $ do
+      System.Exit.exitFailure
+
+  -- Copy the file content.
+  flip evalStateT asked
+    $ forM_ (Data.List.zip (fmap (templateDir </>) templateFiles)
+                           (fmap bsToChars destFiles))
+    $ \(tf, df) -> do
+      bs <- lift $ Data.ByteString.readFile tf
+      cs <- parse bs
+      completed <- convert cs
+      lift $ createDirectoryIfMissing True (dropFileName df)
+      lift $ Data.ByteString.writeFile df completed
+
   where
     parse bs = case parseBS bs of
       Right a -> pure a
       Left s -> lift $ throwIO $ CouldntParseFilename bs s
+

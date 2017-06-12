@@ -47,9 +47,8 @@ like [sos](https://github.com/schell/steeloverseer) and [shake](shakebuild.com).
 
 ## Possible issues
 
- 1. There is no test whether a file already exists yet, simply overwriting the existing file.
- 2. It should work on Windows, but that has not been tested.
- 3. There are no unit tests.
+ 1. It should work on Windows, but that has not been tested.
+ 2. There are no unit tests.
 
 ## Contributing
 
@@ -60,6 +59,5 @@ Contributions are always welcome, as long as they:
 
 Possible candidates include:
 
- - Checking whether a file already exists
  - Testing
  - Adding new variable resources (git config, etc.)
