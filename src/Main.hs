@@ -33,15 +33,19 @@ parseChunk :: Attoparsec.Parser Content
 parseChunk = Attoparsec.choice
   [ do s <- Attoparsec.takeWhile1 (/=questionMark) -- '?' question mark
        pure (String s)
-  , do Attoparsec.word8 questionMark
-       mode <- Attoparsec.takeWhile validChar
-       Attoparsec.word8 questionMark
-       name <- Attoparsec.takeWhile validChar
-       Attoparsec.word8 questionMark
-       case mode of
-         "env" -> pure $ EnvVar name
-         "" -> pure $ PromptVar name
-         _ -> fail $ "Couldn't recognize mode: " <> bsToChars mode
+  , Attoparsec.try $ do
+      Attoparsec.word8 questionMark
+      mode <- Attoparsec.takeWhile validChar
+      Attoparsec.word8 questionMark
+      name <- Attoparsec.takeWhile validChar
+      Attoparsec.word8 questionMark
+      case mode of
+        "env" -> pure $ EnvVar name
+        "" -> pure $ PromptVar name
+        _ -> fail $ "Couldn't recognize mode: " <> bsToChars mode
+
+    -- Allow for stand-alone question marks, like in the common ternary operator ? :
+  , (String . Data.ByteString.singleton) <$> Attoparsec.word8 questionMark
   ]
   where
     questionMark = 63
