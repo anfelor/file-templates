@@ -165,7 +165,7 @@ main = do
     overwrite <- askUser
       ("The following files already exist:\n"
       <> Data.ByteString.Char8.unlines (fmap ("  "<>) existingFiles)
-      ) "Overwrite? [j/N]"
+      ) "Overwrite? [y/N]"
     when (not overwrite) $ do
       System.Exit.exitFailure
 
