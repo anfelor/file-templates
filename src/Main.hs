@@ -113,12 +113,15 @@ allFiles = flip go ""
 
 data TemplateExceptions
   = CouldntParseFilename ByteString GHC.Base.String -- ^ name and attoparsec info
+  | CouldntParseFile ByteString GHC.Base.String -- ^ name and attoparsec info
   | CouldntFindEnvVar ByteString
   deriving (Eq, Show)
 
 instance Exception TemplateExceptions where
   displayException (CouldntParseFilename name info) =
     "Couldn't parse filename '" <> bsToChars name <> "': \n" <> info
+  displayException (CouldntParseFile name info) =
+    "Couldn't parse file '" <> bsToChars name <> "': \n" <> info
   displayException (CouldntFindEnvVar var) =
     "Couldn't find the environment variable '" <> bsToChars var <> "'."
 
@@ -153,7 +156,7 @@ main = do
 
   -- Parse the filenames and resolve the variables in them.
   (destFiles, asked) <- runStateT
-    (mapM (convert <=< parse . charsToBs) templateFiles)
+    (mapM (convert <=< parseFilename . charsToBs) templateFiles)
     HashMap.empty
 
   -- Check whether some files are already present.
@@ -172,13 +175,16 @@ main = do
                            (fmap bsToChars destFiles))
     $ \(tf, df) -> do
       bs <- lift $ Data.ByteString.readFile tf
-      cs <- parse bs
+      cs <- parseFile df bs
       completed <- convert cs
       lift $ createDirectoryIfMissing True (dropFileName df)
       lift $ Data.ByteString.writeFile df completed
 
   where
-    parse bs = case parseBS bs of
+    parseFilename bs = case parseBS bs of
       Right a -> pure a
       Left s -> lift $ throwIO $ CouldntParseFilename bs s
 
+    parseFile name bs = case parseBS bs of
+      Right a -> pure a
+      Left s -> lift $ throwIO $ CouldntParseFile (Data.ByteString.Char8.pack name) s
