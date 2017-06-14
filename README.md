@@ -41,9 +41,11 @@ or `%APPDATA%/dir/`. It then substitutes
  - `??xxx?` by asking the user: `Please give a value for 'xxx':`
  - `?env?xxx?` by reading the environment variable `xxx`
 
-in both filenames and file contents, then copying the files into the current directory.
-This tool works best with other simple tools
-like [sos](https://github.com/schell/steeloverseer) and [shake](shakebuild.com).
+in both filenames and file contents, then copying the files into the current
+directory (if that introduces slashes in a file name, it will happily split the
+filename into  directory structure). This tool works best with other simple tools
+like [sos](https://github.com/schell/steeloverseer) and [shake](shakebuild.com)
+in my experience.
 
 ## Possible issues
 
