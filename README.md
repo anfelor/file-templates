@@ -1,4 +1,4 @@
-# Templates - a simple templating system
+# A simple templating system for files and directories
 
 Assuming you have a directory `~/.templates/post`:
 ```shell

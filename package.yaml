@@ -1,10 +1,11 @@
-name:                templates
-version:             0.1.0.0
-synopsis:
+name:                file-templates
+version:             1.0.0.0
+synopsis:            Use templates for files and directories
 description:
-homepage:            https://github.com/anfelor/templates#readme
+homepage:            https://github.com/anfelor/file-templates#readme
 author:              Anton Felix Lorenzen
 maintainer:          anfelor@posteo.de
+license:             BSD3
 copyright:           BSD3
 category:            Web
 
